@@ -1,5 +1,6 @@
-import PianoVisualizer from "./components/PianoVisualizer";
-import "./App.css";
+import PianoVisualizer from './components/PianoVisualizer';
+import './App.css';
+import React from 'react';
 
 function App() {
   return (

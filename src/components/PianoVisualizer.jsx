@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Square, Download, RotateCcw, Volume2, Usb } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Play, Square, Download, RotateCcw, Volume2, Usb } from 'lucide-react';
 
 // MIDI note mapping for 88 keys (A0 to C8)
 const generateKeyMapping = () => {
   const keys = [];
   const noteNames = [
-    "C",
-    "C#",
-    "D",
-    "D#",
-    "E",
-    "F",
-    "F#",
-    "G",
-    "G#",
-    "A",
-    "A#",
-    "B",
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
   ];
 
   // Start from A0 (MIDI note 21)
@@ -26,7 +26,7 @@ const generateKeyMapping = () => {
 
   for (let i = 0; i < 88; i++) {
     const noteName = noteNames[noteIndex];
-    const isBlack = noteName.includes("#");
+    const isBlack = noteName.includes('#');
 
     keys.push({
       id: i,
@@ -155,8 +155,8 @@ const PianoVisualizer = () => {
     };
 
     updateKeyWidth();
-    window.addEventListener("resize", updateKeyWidth);
-    return () => window.removeEventListener("resize", updateKeyWidth);
+    window.addEventListener('resize', updateKeyWidth);
+    return () => window.removeEventListener('resize', updateKeyWidth);
   }, [keys]);
 
   // Initialize Web Audio API
@@ -213,7 +213,7 @@ const PianoVisualizer = () => {
         }
         setConnectedDevices(devices);
       } catch (error) {
-        console.log("MIDI access denied or not supported:", error);
+        console.log('MIDI access denied or not supported:', error);
       }
     };
 
@@ -234,7 +234,7 @@ const PianoVisualizer = () => {
       frequency,
       audioContextRef.current.currentTime
     );
-    oscillator.type = "sine";
+    oscillator.type = 'sine';
 
     gainNode.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(
@@ -254,15 +254,23 @@ const PianoVisualizer = () => {
       const noteId = ++noteIdCounter.current;
       const whiteKeys = keys.filter((k) => !k.isBlack);
       const whiteKeyIndex = whiteKeys.findIndex((k) => k.id === keyData.id);
+      const whiteKeyWidth = 100 / whiteKeys.length; // Width of each white key in percentage
 
-      let leftPosition;
+      let leftPosition, noteWidth;
+
       if (keyData.isBlack) {
+        // For black keys: position based on white keys before it
         const whiteKeysBefore = keys
           .slice(0, keyData.id)
           .filter((k) => !k.isBlack).length;
-        leftPosition = ((whiteKeysBefore - 0.3) / whiteKeys.length) * 100;
+
+        // Black key starts at 70% of the white key before it
+        leftPosition = (whiteKeysBefore - 0.3) * whiteKeyWidth;
+        noteWidth = whiteKeyWidth * 0.6; // Black key width is 60% of white key
       } else {
-        leftPosition = (whiteKeyIndex / whiteKeys.length) * 100;
+        // For white keys: position based on white key index
+        leftPosition = whiteKeyIndex * whiteKeyWidth;
+        noteWidth = whiteKeyWidth; // Full white key width
       }
 
       const visualNote = {
@@ -270,10 +278,11 @@ const PianoVisualizer = () => {
         keyId: keyData.id,
         note: keyData.note,
         isBlack: keyData.isBlack,
-        leftPosition,
+        leftPosition, // This is now the exact left edge position
+        noteWidth,
         startTime: Date.now(),
         duration: duration || null,
-        color: keyData.isBlack ? "#8b5cf6" : "#3b82f6",
+        color: keyData.isBlack ? '#8b5cf6' : '#3b82f6',
       };
 
       setVisualNotes((prev) => [...prev, visualNote]);
@@ -395,26 +404,26 @@ const PianoVisualizer = () => {
     if (!midiAccess) return;
 
     for (const input of midiAccess.inputs.values()) {
-      input.addEventListener("midimessage", handleMIDIMessage);
+      input.addEventListener('midimessage', handleMIDIMessage);
     }
 
     const stateChangeHandler = () => {
       const updatedDevices = [];
       for (const input of midiAccess.inputs.values()) {
         updatedDevices.push(input);
-        input.removeEventListener("midimessage", handleMIDIMessage);
-        input.addEventListener("midimessage", handleMIDIMessage);
+        input.removeEventListener('midimessage', handleMIDIMessage);
+        input.addEventListener('midimessage', handleMIDIMessage);
       }
       setConnectedDevices(updatedDevices);
     };
 
-    midiAccess.addEventListener("statechange", stateChangeHandler);
+    midiAccess.addEventListener('statechange', stateChangeHandler);
 
     return () => {
       for (const input of midiAccess.inputs.values()) {
-        input.removeEventListener("midimessage", handleMIDIMessage);
+        input.removeEventListener('midimessage', handleMIDIMessage);
       }
-      midiAccess.removeEventListener("statechange", stateChangeHandler);
+      midiAccess.removeEventListener('statechange', stateChangeHandler);
     };
   }, [midiAccess, handleMIDIMessage]);
 
@@ -513,15 +522,15 @@ const PianoVisualizer = () => {
   // Export MIDI file
   const exportMIDI = () => {
     if (recordedNotes.length === 0) {
-      alert("No notes recorded to export!");
+      alert('No notes recorded to export!');
       return;
     }
 
     const midiData = generateMIDIFile(recordedNotes);
-    const blob = new Blob([midiData], { type: "audio/midi" });
+    const blob = new Blob([midiData], { type: 'audio/midi' });
     const url = URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
     link.download = `piano-recording-${Date.now()}.mid`;
     document.body.appendChild(link);
@@ -547,10 +556,10 @@ const PianoVisualizer = () => {
             <div className="flex items-center justify-center gap-2 text-sm text-gray-300">
               <Usb size={16} />
               <span>
-                MIDI Devices:{" "}
+                MIDI Devices:{' '}
                 {connectedDevices.length > 0
-                  ? connectedDevices.map((d) => d.name).join(", ")
-                  : "None connected"}
+                  ? connectedDevices.map((d) => d.name).join(', ')
+                  : 'None connected'}
               </span>
             </div>
           </div>
@@ -561,12 +570,12 @@ const PianoVisualizer = () => {
               onClick={toggleRecording}
               className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold transition-all duration-200 text-sm md:text-base ${
                 isRecording
-                  ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                  : "bg-green-500 hover:bg-green-600 text-white"
+                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                  : 'bg-green-500 hover:bg-green-600 text-white'
               }`}
             >
               {isRecording ? <Square size={16} /> : <Play size={16} />}
-              {isRecording ? "Stop" : "Record"}
+              {isRecording ? 'Stop' : 'Record'}
             </button>
 
             <button
@@ -574,12 +583,12 @@ const PianoVisualizer = () => {
               disabled={recordedNotes.length === 0}
               className={`flex items-center gap-1 md:gap-2 px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold transition-all duration-200 text-sm md:text-base ${
                 isReplaying
-                  ? "bg-red-500 hover:bg-red-600 text-white"
-                  : "bg-purple-500 hover:bg-purple-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white"
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-purple-500 hover:bg-purple-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white'
               }`}
             >
               {isReplaying ? <Square size={16} /> : <Volume2 size={16} />}
-              {isReplaying ? "Stop" : "Replay"}
+              {isReplaying ? 'Stop' : 'Replay'}
             </button>
 
             <button
@@ -603,10 +612,10 @@ const PianoVisualizer = () => {
 
         {/* Piano Container with Animation Space */}
         <div
-          className="relative bg-gray-800 rounded-lg p-4 md:p-6 shadow-2xl overflow-hidden"
-          style={{ minHeight: "400px" }}
+          className="relative bg-gray-800 rounded-lg py-4 md:py-6 shadow-2xl overflow-hidden"
+          style={{ minHeight: '400px' }}
         >
-          {" "}
+          {' '}
           {/* Visual Notes Animation Layer */}
           <div className="absolute inset-0 pointer-events-none z-20">
             {visualNotes.map((note) => {
@@ -667,13 +676,13 @@ const PianoVisualizer = () => {
                   key={note.id}
                   className="absolute rounded-md shadow-lg transition-opacity duration-200"
                   style={{
-                    left: `${note.leftPosition}%`,
+                    left: `${note.leftPosition}%`, // Exact left position of the key
                     top: `${noteTop}%`,
-                    width: note.isBlack ? "2.5%" : "3.5%",
+                    width: `${note.noteWidth}%`, // Exact width of the key
                     height: `${noteHeight}px`,
                     backgroundColor: note.color,
                     opacity: Math.max(opacity, 0),
-                    transform: "translateX(-50%)",
+                    // REMOVE the transform: 'translateX(-50%)' line completely
                     boxShadow: `0 0 20px ${note.color}`,
                     border: `2px solid ${note.color}`,
                     background: `linear-gradient(180deg, ${note.color}, ${note.color}88)`,
@@ -682,16 +691,16 @@ const PianoVisualizer = () => {
                   {/* Note label */}
                   <div
                     className="absolute top-1 left-1/2 transform -translate-x-1/2 text-xs font-bold text-white"
-                    style={{ fontSize: note.isBlack ? "8px" : "10px" }}
+                    style={{ fontSize: note.isBlack ? '8px' : '10px' }}
                   >
-                    {note.note.replace(/[0-9]/g, "")}
+                    {note.note.replace(/[0-9]/g, '')}
                   </div>
 
                   {/* Note duration indicator at bottom */}
                   {note.duration && (
                     <div
                       className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs font-bold text-white opacity-75"
-                      style={{ fontSize: "8px" }}
+                      style={{ fontSize: '8px' }}
                     >
                       {Math.round(note.duration)}ms
                     </div>
@@ -699,7 +708,7 @@ const PianoVisualizer = () => {
                 </div>
               );
             })}
-          </div>{" "}
+          </div>{' '}
           {/* Animation Space Above Piano */}
           <div className="h-48 mb-4 relative">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-800/20 to-gray-800/40 rounded-lg">
@@ -722,19 +731,19 @@ const PianoVisualizer = () => {
                   onMouseLeave={() => handleKeyRelease(key)}
                   className={`relative h-32 md:h-40 mx-px rounded-b-lg border-2 border-gray-300 transition-all duration-75 transform flex-1 ${
                     pressedKeys.has(key.id)
-                      ? "bg-gradient-to-b from-blue-200 to-blue-300 border-blue-400 scale-95 shadow-inner"
-                      : "bg-gradient-to-b from-white to-gray-100 hover:from-gray-50 hover:to-gray-200 shadow-lg hover:shadow-xl"
+                      ? 'bg-gradient-to-b from-blue-200 to-blue-300 border-blue-400 scale-95 shadow-inner'
+                      : 'bg-gradient-to-b from-white to-gray-100 hover:from-gray-50 hover:to-gray-200 shadow-lg hover:shadow-xl'
                   }`}
                   style={{
                     maxWidth: `${keyWidth * 1.5}px`,
                     minWidth: `${Math.max(keyWidth, 8)}px`,
                     boxShadow: pressedKeys.has(key.id)
-                      ? "inset 0 4px 8px rgba(0,0,0,0.3)"
-                      : "0 8px 16px rgba(0,0,0,0.2)",
+                      ? 'inset 0 4px 8px rgba(0,0,0,0.3)'
+                      : '0 8px 16px rgba(0,0,0,0.2)',
                   }}
                 >
                   <div className="absolute bottom-1 md:bottom-2 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 font-mono">
-                    {keyWidth > 10 ? key.note : key.note.replace(/[0-9]/g, "")}
+                    {keyWidth > 10 ? key.note : key.note.replace(/[0-9]/g, '')}
                   </div>
                 </button>
               ))}
@@ -760,22 +769,22 @@ const PianoVisualizer = () => {
                     onMouseLeave={() => handleKeyRelease(key)}
                     className={`absolute h-20 md:h-24 rounded-b-lg border border-gray-800 transition-all duration-75 transform ${
                       pressedKeys.has(key.id)
-                        ? "bg-gradient-to-b from-purple-400 to-purple-600 scale-95 shadow-inner"
-                        : "bg-gradient-to-b from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 shadow-lg"
+                        ? 'bg-gradient-to-b from-purple-400 to-purple-600 scale-95 shadow-inner'
+                        : 'bg-gradient-to-b from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 shadow-lg'
                     }`}
                     style={{
                       left: `${leftPercentage}%`,
                       width: `${whiteKeyWidth * 0.6}%`,
                       zIndex: 10,
                       boxShadow: pressedKeys.has(key.id)
-                        ? "inset 0 4px 8px rgba(0,0,0,0.5)"
-                        : "0 8px 16px rgba(0,0,0,0.4)",
+                        ? 'inset 0 4px 8px rgba(0,0,0,0.5)'
+                        : '0 8px 16px rgba(0,0,0,0.4)',
                     }}
                   >
                     <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-white font-mono">
                       {keyWidth > 10
                         ? key.note
-                        : key.note.replace(/[0-9]/g, "")}
+                        : key.note.replace(/[0-9]/g, '')}
                     </div>
                   </button>
                 );
